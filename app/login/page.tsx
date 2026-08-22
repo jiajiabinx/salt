@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 export default function MarketplaceLoginPage() {
   return (
     <main className="formSection">
-      <div className="formEyebrow">Physical AI Marketplace</div>
+      <div className="formEyebrow">Embodied Data Marketplace</div>
       <h1 className="formH1">Buyer log in.</h1>
       <p className="formIntro">
         Buyer accounts are issued once we&apos;ve reviewed your access request. If
