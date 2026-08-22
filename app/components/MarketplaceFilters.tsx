@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { CAPABILITIES, MODALITY_FILTERS } from "../../lib/taxonomy";
 
 /**
@@ -43,7 +44,23 @@ export function CapabilityNav() {
   );
 }
 
-export function ModalityFilters() {
+/**
+ * The filter row only means anything on the listing grid — on /signup and
+ * /login it would just be chrome around the form, so it drops out entirely
+ * (including the reserved-space fallback) off the marketplace index.
+ */
+export function ModalityFilterBar() {
+  const pathname = usePathname();
+  if (pathname !== "/") return null;
+
+  return (
+    <Suspense fallback={<div className="marketSubNav" />}>
+      <ModalityFilters />
+    </Suspense>
+  );
+}
+
+function ModalityFilters() {
   const params = useSearchParams();
   const activeModality = params.get("modality");
 

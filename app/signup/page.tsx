@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function MarketplaceSignupPage() {
   return (
     <main className="formSection formSectionWide">
-      <div className="formEyebrow">Marketplace</div>
+      <div className="formEyebrow">Physical AI Marketplace</div>
       <h1 className="formH1">Request buyer access.</h1>
       <p className="formIntro">
         Access unlocks pricing, sample episodes, and licensing terms on every

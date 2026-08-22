@@ -5715,7 +5715,9 @@ button.navLogoutBtn {
 
 /* ── FORM (shared: buyer interest, provider auth, kit request) ── */
 .formSection {
-  padding: 9.5rem 2.5rem 6rem;
+  /* The marketplace nav is sticky, not fixed, so these pages don't have to
+     reserve clearance for it — just breathing room above the eyebrow. */
+  padding: 3.5rem 2.5rem 6rem;
   max-width: 560px;
   margin: 0 auto;
 }
@@ -8609,12 +8611,8 @@ body[data-wb-rail="collapsed"] .workbench {
   }
 }
 
-/* ── MOBILE NAV CLEARANCE ──
-   The nav wraps to two rows under 720px (see the NAV section), which is
-   taller than the top padding these pages reserve for it. Declared here,
-   after the rules it overrides. */
 @media (max-width: 720px) {
   .formSection {
-    padding-top: 11.5rem;
+    padding-top: 2.5rem;
   }
 }

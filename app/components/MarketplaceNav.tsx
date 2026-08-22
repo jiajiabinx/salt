@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { verifyProviderSession } from "../../lib/provider-auth";
 import { appUrl, loginUrl } from "../../lib/urls";
-import { CapabilityNav, ModalityFilters } from "./MarketplaceFilters";
+import { CapabilityNav, ModalityFilterBar } from "./MarketplaceFilters";
 
 export default async function MarketplaceNav() {
   const session = await verifyProviderSession();
@@ -35,9 +35,7 @@ export default async function MarketplaceNav() {
           </Link>
         </div>
       </nav>
-      <Suspense fallback={<div className="marketSubNav" />}>
-        <ModalityFilters />
-      </Suspense>
+      <ModalityFilterBar />
     </header>
   );
 }
