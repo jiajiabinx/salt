@@ -14,7 +14,7 @@ export type ProviderSession = {
 
 /**
  * Read-only session check. This app never creates or destroys a seller
- * session — that only happens on login.trybutter.ai — it just needs to
+ * session — that only happens on app.trybutter.ai — it just needs to
  * know whether the visitor is currently a signed-in seller, to point the
  * nav's "Sell on Butter" link at the workbench instead of signup.
  */

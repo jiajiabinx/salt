@@ -1,15 +1,14 @@
-const LOGIN_URL = (process.env.NEXT_PUBLIC_LOGIN_URL ?? "https://login.trybutter.ai").replace(
-  /\/$/,
-  ""
-);
 const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "https://app.trybutter.ai").replace(/\/$/, "");
 
-/** The seller login/signup app is always a separate origin from this one. */
+/**
+ * The seller login/signup and the workbench both live on app.trybutter.ai
+ * (login isn't a separate subdomain) — this app is always a different
+ * origin from that one either way.
+ */
 export function loginUrl(path = "/login"): string {
-  return `${LOGIN_URL}${path}`;
+  return `${APP_URL}${path}`;
 }
 
-/** The seller workbench is always a separate origin from this one. */
 export function appUrl(path = "/"): string {
   return `${APP_URL}${path}`;
 }
