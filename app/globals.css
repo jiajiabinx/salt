@@ -6930,6 +6930,27 @@ button.providerTypeCard:disabled {
   border-color: var(--blue);
 }
 
+/* Signed-in buyer's name, sitting where the signup CTA otherwise is. */
+.marketNavAccount {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--blue);
+  opacity: 0.7;
+  white-space: nowrap;
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* `.marketNavLogin` is a link in the logged-out nav and a submit button in the
+   logged-in one — buttons don't inherit either of these from the body. */
+button.marketNavLogin {
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
 .marketNavSignup {
   font-size: 0.85rem;
   font-weight: 700;

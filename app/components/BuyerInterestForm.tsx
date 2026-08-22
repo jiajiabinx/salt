@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { submitBuyerInterest, type BuyerInterestFormState } from "../actions/buyer";
 import { BUYER_TYPES } from "../../lib/auth/kyb";
+import { MIN_PASSWORD_LENGTH } from "../../lib/auth/password-rules";
 
 const initialState: BuyerInterestFormState = { status: "idle" };
 
@@ -112,6 +113,47 @@ export default function BuyerInterestForm() {
         )}
       </label>
 
+      <label className="formField">
+        <span className="formLabel">
+          Password <span className="formReq">*</span>
+        </span>
+        <input
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          required
+          minLength={MIN_PASSWORD_LENGTH}
+          className="formInput"
+          aria-invalid={Boolean(fieldErr.password) || undefined}
+        />
+        {fieldErr.password ? (
+          <span className="formFieldErr" role="alert">
+            {fieldErr.password}
+          </span>
+        ) : (
+          <span className="formHint">At least {MIN_PASSWORD_LENGTH} characters.</span>
+        )}
+      </label>
+
+      <label className="formField">
+        <span className="formLabel">
+          Confirm password <span className="formReq">*</span>
+        </span>
+        <input
+          name="confirmPassword"
+          type="password"
+          autoComplete="new-password"
+          required
+          className="formInput"
+          aria-invalid={Boolean(fieldErr.confirmPassword) || undefined}
+        />
+        {fieldErr.confirmPassword && (
+          <span className="formFieldErr" role="alert">
+            {fieldErr.confirmPassword}
+          </span>
+        )}
+      </label>
+
       <label className="formField formFieldWide">
         <span className="formLabel">What data do your models need?</span>
         <textarea
@@ -125,7 +167,8 @@ export default function BuyerInterestForm() {
 
       <p className="formHint formFieldWide">
         For labs and enterprise data teams only — individual buyers aren&apos;t
-        supported at this time.
+        supported at this time. Your password is set now; sign-in opens once the
+        request is approved.
       </p>
 
       <div className="formFooter">

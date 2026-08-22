@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { verifyProviderSession } from "../../lib/provider-auth";
+import { verifyBuyerSession } from "../../lib/buyer-auth";
+import { logOutBuyer } from "../actions/buyer-auth";
 import { appUrl, loginUrl } from "../../lib/urls";
 import { CapabilityNav, ModalityFilterBar } from "./MarketplaceFilters";
 
 export default async function MarketplaceNav() {
-  const session = await verifyProviderSession();
+  const [session, buyer] = await Promise.all([
+    verifyProviderSession(),
+    verifyBuyerSession(),
+  ]);
 
   return (
     <header className="marketNavWrap">
@@ -27,12 +32,27 @@ export default async function MarketplaceNav() {
           >
             Sell on Butter
           </a>
-          <Link href="/login" className="marketNavLogin">
-            Log in
-          </Link>
-          <Link href="/signup" className="marketNavSignup">
-            Create an account
-          </Link>
+          {buyer ? (
+            <>
+              <span className="marketNavAccount" title={buyer.email}>
+                {buyer.name}
+              </span>
+              <form action={logOutBuyer}>
+                <button type="submit" className="marketNavLogin">
+                  Log out
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="marketNavLogin">
+                Log in
+              </Link>
+              <Link href="/signup" className="marketNavSignup">
+                Create an account
+              </Link>
+            </>
+          )}
         </div>
       </nav>
       <ModalityFilterBar />
