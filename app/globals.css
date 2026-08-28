@@ -5713,6 +5713,68 @@ button.navLogoutBtn {
   border-color: var(--blue);
 }
 
+/* ── DATASET CARDS ON A PHONE ──
+   A card runs past 600px on a 375px screen, so one listing fills the
+   viewport and browsing turns into scrolling. Nothing is dropped here;
+   the whole card is just tightened, and the pixel scene is capped.
+
+   Every value below is uniform across cards, so the equal-height
+   machinery that keeps a grid row in step still holds. Only the two
+   min-heights further down are relaxed, and those wait for the width
+   where the grid is definitely a single column. */
+@media (max-width: 780px) {
+  .marketplaceGrid {
+    padding: 1rem 1.25rem 3rem;
+    gap: 1rem;
+  }
+  .marketplaceSectionHeading,
+  .marketplaceEmpty,
+  .marketplaceCompactHeader,
+  .marketFilterBar {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+  .datasetCard {
+    gap: 0.6rem;
+    padding: 1.1rem;
+  }
+  /* Negative margins have to track the card's padding to stay flush. */
+  .datasetCardArt {
+    margin: -1.1rem -1.1rem 0.1rem;
+    padding: 0.55rem 0.6rem 0.4rem;
+  }
+  /* The scene is 28x10, so at full card width it claims ~125px of height
+     for artwork. Capped, it letterboxes and stays centred and crisp. */
+  .datasetCardArt .pxScene {
+    max-height: 84px;
+  }
+  .datasetCardTitle {
+    font-size: 1.05rem;
+  }
+  .datasetCardParams {
+    gap: 0.35rem;
+    padding: 0.7rem 0;
+  }
+  .datasetCardParamRow {
+    grid-template-columns: 76px 1fr;
+    gap: 0.6rem;
+    min-height: 1.35rem;
+  }
+  .datasetCardFooter {
+    padding-top: 0.7rem;
+    margin-top: 0.15rem;
+  }
+}
+
+/* Below 700px the grid is one column at any padding, so a short title or
+   summary no longer has to hold space for a taller neighbour. */
+@media (max-width: 700px) {
+  .datasetCardTitle,
+  .datasetCardSummary {
+    min-height: 0;
+  }
+}
+
 /* ── FORM (shared: buyer interest, provider auth, kit request) ── */
 .formSection {
   /* The marketplace nav is sticky, not fixed, so these pages don't have to
@@ -6930,6 +6992,27 @@ button.providerTypeCard:disabled {
   border-color: var(--blue);
 }
 
+/* Signed-in buyer's name, sitting where the signup CTA otherwise is. */
+.marketNavAccount {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--blue);
+  opacity: 0.7;
+  white-space: nowrap;
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* `.marketNavLogin` is a link in the logged-out nav and a submit button in the
+   logged-in one — buttons don't inherit either of these from the body. */
+button.marketNavLogin {
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
 .marketNavSignup {
   font-size: 0.85rem;
   font-weight: 700;
@@ -6944,22 +7027,202 @@ button.providerTypeCard:disabled {
   opacity: 0.85;
 }
 
+/* ── MARKETPLACE MOBILE DRAWER ──
+   Everything the wide header spreads across three rows lives in here on a
+   phone: capabilities, modality chips, and the account actions. Burger and
+   panel are in the DOM at every width and simply display:none above 780px,
+   so nothing about the wide header depends on them. */
+.marketBurger {
+  display: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-left: -0.5rem;
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  color: var(--blue);
+  cursor: pointer;
+}
+
+.marketBurgerBars {
+  display: block;
+  width: 20px;
+}
+.marketBurgerBars span {
+  display: block;
+  height: 2px;
+  background: currentColor;
+}
+.marketBurgerBars span + span {
+  margin-top: 4px;
+}
+
+.marketScrim {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  background: rgba(var(--ink-rgb), 0.4);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s var(--ease-out), visibility 0.2s var(--ease-out);
+}
+.marketScrim-on {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Hidden rather than merely shifted, so the links stay out of the tab
+   order and off the accessibility tree while the panel is shut. */
+.marketDrawer {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 120;
+  flex-direction: column;
+  gap: 1.75rem;
+  width: min(300px, 84vw);
+  height: 100dvh;
+  padding: 1rem 1.25rem 1.5rem;
+  background: var(--surface);
+  border-right: var(--rule) solid var(--line);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  visibility: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.22s var(--ease-out), visibility 0.22s var(--ease-out);
+}
+.marketDrawer-open {
+  visibility: visible;
+  transform: translateX(0);
+}
+
+.marketDrawerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.marketDrawerClose {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-right: -0.4rem;
+  flex-shrink: 0;
+  background: none;
+  border: var(--hairline) solid transparent;
+  color: var(--blue);
+  cursor: pointer;
+  opacity: 0.6;
+}
+.marketDrawerClose:hover {
+  opacity: 1;
+  border-color: var(--line);
+}
+.marketDrawerClose svg {
+  width: 16px;
+  height: 16px;
+}
+
+.marketDrawerSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.marketDrawerLabel {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--blue);
+  opacity: 0.45;
+  margin-bottom: 0.6rem;
+}
+
+.marketDrawerLink {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--blue);
+  text-decoration: none;
+  padding: 0.65rem 0.6rem;
+  margin: 0 -0.6rem;
+  opacity: 0.7;
+  border-left: 3px solid transparent;
+}
+.marketDrawerLink:hover {
+  opacity: 1;
+  background: var(--line-faint);
+}
+.marketDrawerLinkActive {
+  opacity: 1;
+  background: var(--butter-yellow-soft);
+  border-left-color: var(--yellow);
+}
+
+.marketDrawerChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* The account block is built for a horizontal header row, so the panel
+   restates it as a stack of full-width targets. */
+.marketDrawerFoot {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 1.25rem;
+  border-top: var(--rule) solid var(--line-soft);
+}
+.marketDrawerFoot .marketNavSellLink,
+.marketDrawerFoot .marketNavAccount {
+  text-align: center;
+}
+.marketDrawerFoot .marketNavAccount {
+  max-width: none;
+}
+/* Log out is a submit button inside a form; the form has to stretch
+   before the button can. */
+.marketDrawerFoot form {
+  width: 100%;
+}
+.marketDrawerFoot .marketNavLogin,
+.marketDrawerFoot .marketNavSignup {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 0.7rem 1rem;
+}
+
+body[data-market-drawer="open"] {
+  overflow: hidden;
+}
+
 @media (max-width: 780px) {
   .marketNav {
-    flex-wrap: wrap;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
+    gap: 0.75rem;
+    padding: 0.7rem 1.25rem;
   }
-  .marketNavCapabilities {
-    order: 3;
-    /* flex-basis must be 100%, not the 0% that `flex: 1` implies, or the row
-       never forces a wrap and instead overflows off-screen. */
-    flex: 1 0 100%;
-    width: 100%;
-    gap: 1rem;
+  .marketBurger {
+    display: grid;
   }
+  .marketScrim {
+    display: block;
+  }
+  .marketDrawer {
+    display: flex;
+  }
+  /* Both rows and the account block now live in the panel. */
+  .marketNavCapabilities,
+  .marketNavActions,
   .marketSubNav {
-    padding: 0.6rem 1.25rem;
+    display: none;
   }
 }
 

@@ -38,9 +38,9 @@ export const sql: postgres.Sql | null =
 if (sql && !globalThis.__butterSql) globalThis.__butterSql = sql;
 
 /**
- * Idempotently ensures all tables exist (buyer interest, provider accounts,
- * kit tracking, and the org-scoped workbench: assets, folders, devices,
- * wallet). Runs once per process.
+ * Idempotently ensures all tables exist (buyer interest, buyer accounts and
+ * sessions, provider accounts, kit tracking, and the org-scoped workbench:
+ * assets, folders, devices, wallet). Runs once per process.
  */
 export function ensureSchema(): Promise<void> {
   if (!sql) return Promise.resolve();
@@ -60,6 +60,55 @@ export function ensureSchema(): Promise<void> {
     `;
     await sql`
       CREATE INDEX IF NOT EXISTS buyer_interest_submitted_at_idx ON buyer_interest (submitted_at DESC)
+    `;
+
+    /* ── Buyer accounts ──
+       Separate from `providers`: a buyer buys data and a provider sells it,
+       they sign in on different origins, and nothing about one is meaningful
+       to the other. Deliberately no `google_id` column — buyer sign-in is
+       email + password only for now.
+
+       `buyer_interest` stays the pre-account record of who asked for access;
+       `buyers` is the account that request turns into, and `interest_id`
+       keeps the two joined so review has the use-case text to hand. */
+    await sql`
+      CREATE TABLE IF NOT EXISTS buyers (
+        id BIGSERIAL PRIMARY KEY,
+        email TEXT NOT NULL,
+        password_hash TEXT NOT NULL,
+        name TEXT NOT NULL,
+        company_name TEXT NOT NULL,
+        buyer_type TEXT NOT NULL CHECK (buyer_type IN ('frontier_lab', 'neo_lab', 'enterprise_other')),
+        status TEXT NOT NULL DEFAULT 'pending' CHECK (
+          status IN ('pending', 'approved', 'rejected', 'suspended')
+        ),
+        interest_id BIGINT REFERENCES buyer_interest(id) ON DELETE SET NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        approved_at TIMESTAMPTZ,
+        last_login_at TIMESTAMPTZ
+      )
+    `;
+    await sql`
+      CREATE UNIQUE INDEX IF NOT EXISTS buyers_email_idx ON buyers (lower(email))
+    `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS buyers_status_created_idx ON buyers (status, created_at DESC)
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS buyer_sessions (
+        id BIGSERIAL PRIMARY KEY,
+        buyer_id BIGINT NOT NULL REFERENCES buyers(id) ON DELETE CASCADE,
+        token_hash TEXT NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
+    `;
+    await sql`
+      CREATE UNIQUE INDEX IF NOT EXISTS buyer_sessions_token_hash_idx ON buyer_sessions (token_hash)
+    `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS buyer_sessions_buyer_id_idx ON buyer_sessions (buyer_id)
     `;
 
     await sql`

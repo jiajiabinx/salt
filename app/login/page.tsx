@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import BuyerLoginForm from "../components/BuyerLoginForm";
+import { verifyBuyerSession } from "../../lib/buyer-auth";
 import { loginUrl } from "../../lib/urls";
 
 export const metadata: Metadata = {
@@ -11,23 +14,23 @@ export const metadata: Metadata = {
 };
 
 /**
- * Placeholder for buyer sign-in.
- *
- * There is no buyer auth yet — `buyer_interest` records access requests, and
- * accounts are provisioned by hand after review. This page exists so the nav's
- * "Log in" CTA has an honest destination instead of a dead link, and should be
- * replaced by the real sign-in form once buyer accounts are issued.
+ * Buyer sign-in: email + password only. No Google — buyers arrive through a
+ * reviewed access request rather than self-serve social sign-up, so there is
+ * nothing for an OAuth provider to shortcut.
  */
-export default function MarketplaceLoginPage() {
+export default async function MarketplaceLoginPage() {
+  if (await verifyBuyerSession()) redirect("/");
+
   return (
     <main className="formSection">
       <div className="formEyebrow">Embodied Data Marketplace</div>
       <h1 className="formH1">Buyer log in.</h1>
       <p className="formIntro">
-        Buyer accounts are issued once we&apos;ve reviewed your access request. If
-        yours is approved and you haven&apos;t received your sign-in details yet,
-        reply to that email and we&apos;ll sort it out.
+        Sign in to see pricing, sample episodes, and licensing terms across every
+        listing. Accounts go live once we&apos;ve reviewed your access request.
       </p>
+
+      <BuyerLoginForm />
 
       <p className="formSwitch">
         Don&apos;t have an account yet?{" "}
