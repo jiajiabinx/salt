@@ -24,6 +24,14 @@ function toggleHref(
   return qs ? `/?${qs}` : "/";
 }
 
+/** The same href, with one param removed and every other one kept. */
+function clearedHref(params: URLSearchParams, key: string): string {
+  const next = new URLSearchParams(params.toString());
+  next.delete(key);
+  const qs = next.toString();
+  return qs ? `/?${qs}` : "/";
+}
+
 export function CapabilityNav() {
   const params = useSearchParams();
   const active = params.get("category");
@@ -40,6 +48,72 @@ export function CapabilityNav() {
           {c.label}
         </Link>
       ))}
+    </div>
+  );
+}
+
+/**
+ * The same two axes, stacked for the mobile drawer. They render as a list
+ * and a chip block rather than two scrolling rows, which is the whole
+ * point of moving them behind the burger.
+ *
+ * `onNavigate` closes the drawer. A capability or modality link only
+ * changes the query string, so the pathname effect that closes the drawer
+ * on navigation never fires for these.
+ */
+export function DrawerBrowse({ onNavigate }: { onNavigate: () => void }) {
+  const params = useSearchParams();
+  const active = params.get("category");
+
+  return (
+    <nav className="marketDrawerSection" aria-label="Browse by capability">
+      <div className="marketDrawerLabel">Browse</div>
+      <Link
+        href={clearedHref(params, "category")}
+        className={`marketDrawerLink${active ? "" : " marketDrawerLinkActive"}`}
+        aria-current={active ? undefined : "page"}
+        onClick={onNavigate}
+      >
+        Everything
+      </Link>
+      {CAPABILITIES.map((c) => (
+        <Link
+          key={c.slug}
+          href={toggleHref(params, "category", c.slug)}
+          className={`marketDrawerLink${active === c.slug ? " marketDrawerLinkActive" : ""}`}
+          aria-current={active === c.slug ? "page" : undefined}
+          onClick={onNavigate}
+        >
+          {c.label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+export function DrawerFilter({ onNavigate }: { onNavigate: () => void }) {
+  const params = useSearchParams();
+  const activeModality = params.get("modality");
+
+  return (
+    <div className="marketDrawerSection">
+      <div className="marketDrawerLabel">Filter by modality</div>
+      <div className="marketDrawerChips">
+        {MODALITY_FILTERS.map((m) => {
+          const on = activeModality?.toLowerCase() === m.toLowerCase();
+          return (
+            <Link
+              key={m}
+              href={toggleHref(params, "modality", m)}
+              className={`marketChip${on ? " marketChipActive" : ""}`}
+              aria-pressed={on}
+              onClick={onNavigate}
+            >
+              {m}
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }
