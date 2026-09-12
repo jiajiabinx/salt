@@ -52,8 +52,8 @@ export function ensureSchema(): Promise<void> {
         id BIGSERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         email TEXT NOT NULL,
-        company_name TEXT NOT NULL,
-        buyer_type TEXT NOT NULL CHECK (buyer_type IN ('frontier_lab', 'neo_lab', 'enterprise_other')),
+        company_name TEXT,
+        buyer_type TEXT CHECK (buyer_type IN ('frontier_lab', 'neo_lab', 'enterprise_other')),
         use_case TEXT,
         submitted_at TIMESTAMPTZ NOT NULL DEFAULT now()
       )
@@ -61,6 +61,13 @@ export function ensureSchema(): Promise<void> {
     await sql`
       CREATE INDEX IF NOT EXISTS buyer_interest_submitted_at_idx ON buyer_interest (submitted_at DESC)
     `;
+    /* Company and buyer type are no longer asked for at signup — they get
+       derived from the work email domain instead — so both go nullable and
+       stay unset until that detection runs. This table predates this app and
+       is also written by the seller repo against the same database; dropping
+       NOT NULL is safe there because nothing it inserts omits these. */
+    await sql`ALTER TABLE buyer_interest ALTER COLUMN company_name DROP NOT NULL`;
+    await sql`ALTER TABLE buyer_interest ALTER COLUMN buyer_type DROP NOT NULL`;
 
     /* ── Buyer accounts ──
        Separate from `providers`: a buyer buys data and a provider sells it,
@@ -70,15 +77,18 @@ export function ensureSchema(): Promise<void> {
 
        `buyer_interest` stays the pre-account record of who asked for access;
        `buyers` is the account that request turns into, and `interest_id`
-       keeps the two joined so review has the use-case text to hand. */
+       keeps the two joined so review has the use-case text to hand.
+
+       `company_name` and `buyer_type` are nullable: signup asks for neither,
+       and both are meant to be derived from the work email domain. */
     await sql`
       CREATE TABLE IF NOT EXISTS buyers (
         id BIGSERIAL PRIMARY KEY,
         email TEXT NOT NULL,
         password_hash TEXT NOT NULL,
         name TEXT NOT NULL,
-        company_name TEXT NOT NULL,
-        buyer_type TEXT NOT NULL CHECK (buyer_type IN ('frontier_lab', 'neo_lab', 'enterprise_other')),
+        company_name TEXT,
+        buyer_type TEXT CHECK (buyer_type IN ('frontier_lab', 'neo_lab', 'enterprise_other')),
         status TEXT NOT NULL DEFAULT 'pending' CHECK (
           status IN ('pending', 'approved', 'rejected', 'suspended')
         ),
@@ -88,6 +98,8 @@ export function ensureSchema(): Promise<void> {
         last_login_at TIMESTAMPTZ
       )
     `;
+    await sql`ALTER TABLE buyers ALTER COLUMN company_name DROP NOT NULL`;
+    await sql`ALTER TABLE buyers ALTER COLUMN buyer_type DROP NOT NULL`;
     await sql`
       CREATE UNIQUE INDEX IF NOT EXISTS buyers_email_idx ON buyers (lower(email))
     `;
