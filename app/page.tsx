@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getApprovedListings, type Listing } from "../lib/listings";
-import { capabilityLabel } from "../lib/taxonomy";
+import { capabilityLabel, signalLabel } from "../lib/taxonomy";
 import ListingCard from "./components/ListingCard";
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-type Filters = { category?: string; modality?: string };
+type Filters = { category?: string; signal?: string };
 
 function applyFilters(listings: Listing[], f: Filters): Listing[] {
   let out = listings;
@@ -19,10 +19,14 @@ function applyFilters(listings: Listing[], f: Filters): Listing[] {
   if (f.category) {
     out = out.filter((l) => l.category === f.category);
   }
-  if (f.modality) {
-    const m = f.modality.toLowerCase();
+  if (f.signal) {
+    /* Listings store MK-SIG codes, but `normalizeParameters` leaves anything
+       it can't resolve as written, so match the label too. */
+    const want = f.signal.toLowerCase();
     out = out.filter((l) =>
-      l.parameters.sensorModalities.some((s) => s.toLowerCase() === m)
+      l.parameters.signals.some(
+        (s) => s.toLowerCase() === want || signalLabel(s).toLowerCase() === want
+      )
     );
   }
   return out;
@@ -40,7 +44,9 @@ function activeChips(f: Filters): { label: string; clearHref: string }[] {
   if (f.category) {
     chips.push({ label: capabilityLabel(f.category), clearHref: hrefWithout("category") });
   }
-  if (f.modality) chips.push({ label: f.modality, clearHref: hrefWithout("modality") });
+  if (f.signal) {
+    chips.push({ label: signalLabel(f.signal), clearHref: hrefWithout("signal") });
+  }
   return chips;
 }
 

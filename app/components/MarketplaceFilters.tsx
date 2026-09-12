@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { CAPABILITIES, MODALITY_FILTERS } from "../../lib/taxonomy";
+import { CAPABILITIES, SIGNAL_PRIMITIVES } from "../../lib/taxonomy";
 
 /**
  * Builds a marketplace href with one param toggled — clicking the active
@@ -44,6 +44,7 @@ export function CapabilityNav() {
           href={toggleHref(params, "category", c.slug)}
           className={`marketNavLink${active === c.slug ? " marketNavLinkActive" : ""}`}
           aria-current={active === c.slug ? "page" : undefined}
+          title={c.blurb}
         >
           {c.label}
         </Link>
@@ -57,7 +58,7 @@ export function CapabilityNav() {
  * and a chip block rather than two scrolling rows, which is the whole
  * point of moving them behind the burger.
  *
- * `onNavigate` closes the drawer. A capability or modality link only
+ * `onNavigate` closes the drawer. A capture-domain or signal link only
  * changes the query string, so the pathname effect that closes the drawer
  * on navigation never fires for these.
  */
@@ -66,7 +67,7 @@ export function DrawerBrowse({ onNavigate }: { onNavigate: () => void }) {
   const active = params.get("category");
 
   return (
-    <nav className="marketDrawerSection" aria-label="Browse by capability">
+    <nav className="marketDrawerSection" aria-label="Browse by capture domain">
       <div className="marketDrawerLabel">Browse</div>
       <Link
         href={clearedHref(params, "category")}
@@ -93,23 +94,24 @@ export function DrawerBrowse({ onNavigate }: { onNavigate: () => void }) {
 
 export function DrawerFilter({ onNavigate }: { onNavigate: () => void }) {
   const params = useSearchParams();
-  const activeModality = params.get("modality");
+  const activeSignal = params.get("signal");
 
   return (
     <div className="marketDrawerSection">
-      <div className="marketDrawerLabel">Filter by modality</div>
+      <div className="marketDrawerLabel">Filter by signal</div>
       <div className="marketDrawerChips">
-        {MODALITY_FILTERS.map((m) => {
-          const on = activeModality?.toLowerCase() === m.toLowerCase();
+        {SIGNAL_PRIMITIVES.map((s) => {
+          const on = activeSignal === s.code;
           return (
             <Link
-              key={m}
-              href={toggleHref(params, "modality", m)}
+              key={s.code}
+              href={toggleHref(params, "signal", s.code)}
               className={`marketChip${on ? " marketChipActive" : ""}`}
               aria-pressed={on}
+              title={s.code}
               onClick={onNavigate}
             >
-              {m}
+              {s.label}
             </Link>
           );
         })}
@@ -119,39 +121,40 @@ export function DrawerFilter({ onNavigate }: { onNavigate: () => void }) {
 }
 
 /**
- * The filter row only means anything on the listing grid — on /signup and
+ * MK-SIG signal primitives. The filter row only means anything on the listing grid — on /signup and
  * /login it would just be chrome around the form, so it drops out entirely
  * (including the reserved-space fallback) off the marketplace index.
  */
-export function ModalityFilterBar() {
+export function SignalFilterBar() {
   const pathname = usePathname();
   if (pathname !== "/") return null;
 
   return (
     <Suspense fallback={<div className="marketSubNav" />}>
-      <ModalityFilters />
+      <SignalFilters />
     </Suspense>
   );
 }
 
-function ModalityFilters() {
+function SignalFilters() {
   const params = useSearchParams();
-  const activeModality = params.get("modality");
+  const activeSignal = params.get("signal");
 
   return (
     <div className="marketSubNav">
-      <span className="marketSubNavLabel">Filter</span>
+      <span className="marketSubNavLabel">Signal</span>
 
-      {MODALITY_FILTERS.map((m) => {
-        const on = activeModality?.toLowerCase() === m.toLowerCase();
+      {SIGNAL_PRIMITIVES.map((s) => {
+        const on = activeSignal === s.code;
         return (
           <Link
-            key={m}
-            href={toggleHref(params, "modality", m)}
+            key={s.code}
+            href={toggleHref(params, "signal", s.code)}
             className={`marketChip${on ? " marketChipActive" : ""}`}
             aria-pressed={on}
+            title={s.code}
           >
-            {m}
+            {s.label}
           </Link>
         );
       })}
