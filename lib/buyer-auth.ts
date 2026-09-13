@@ -14,13 +14,15 @@ export type BuyerSession = {
   buyerId: number;
   email: string;
   name: string;
-  companyName: string;
+  /* Null until it is derived from the work email domain — signup no longer
+     asks for either of these. */
+  companyName: string | null;
   status: BuyerStatus;
 };
 
 export type BuyerRecord = BuyerSession & {
   passwordHash: string;
-  buyerType: BuyerType;
+  buyerType: BuyerType | null;
 };
 
 const SESSION_DAYS = 30;

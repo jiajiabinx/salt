@@ -11,6 +11,7 @@ import {
   startBuyerSession,
   type BuyerStatus,
 } from "../../lib/buyer-auth";
+import { emailDomain } from "../../lib/auth/kyb";
 import { captureServerEvent } from "../../lib/posthog-server";
 
 /**
@@ -69,7 +70,7 @@ export async function logInBuyer(
 
   await startBuyerSession(buyer.buyerId);
   await captureServerEvent(`buyer:${buyer.email}`, "buyer_logged_in", {
-    company_name: buyer.companyName,
+    email_domain: emailDomain(buyer.email),
   });
 
   revalidatePath("/", "layout");

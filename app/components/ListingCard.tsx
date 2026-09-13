@@ -1,10 +1,12 @@
 import Link from "next/link";
-import type { Listing } from "../../lib/listings";
+import type { Listing, ListingParameters } from "../../lib/listings";
 import { sceneKeyFor } from "../../lib/pixel-scenes";
 import {
   capabilityLabel,
   experienceTier,
   experienceTierLabel,
+  humanize,
+  signalLabel,
 } from "../../lib/taxonomy";
 import TaskPixelScene from "./TaskPixelScene";
 
@@ -51,6 +53,13 @@ function packChips(values: string[]): { shown: string[]; hidden: string[] } {
 
 function formatPrice(cents: number): string {
   return `$${(cents / 100).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+}
+
+/** 3,300,000 → "3.3M". Frame counts run to seven figures; the strip has ~40px. */
+function compactCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  if (n >= 10_000) return `${Math.round(n / 1000)}k`;
+  return n.toLocaleString("en-US");
 }
 
 function ChipRow({ label, values }: { label: string; values: string[] }) {
@@ -134,11 +143,51 @@ function RatingRow({ rating, reviews }: { rating?: number; reviews?: number }) {
   );
 }
 
-function ValueRow({ label, value }: { label: string; value: string }) {
+/**
+ * The counts EgoVerse leads with on an episode — episodes, frames, duration —
+ * on one mono line above the chip rows. They're numbers rather than tags, so
+ * putting them in the chip block would cost three of its seven rows and read
+ * as a category list.
+ *
+ * Anything unset is dropped rather than shown as "—": the strip is one line
+ * either way, so a gap costs nothing and a placeholder is noise. The licence
+ * is deliberately not here — at card width it is what the ellipsis eats, and
+ * it matters too much to lose, so it sits in the footer beside the price.
+ */
+function StatStrip({ parameters }: { parameters: ListingParameters }) {
+  const { episodes, frames, hours, isEval, evalSuccessRate } = parameters;
+
+  const stats: string[] = [];
+  if (typeof episodes === "number") {
+    stats.push(`${compactCount(episodes)} ${episodes === 1 ? "episode" : "episodes"}`);
+  }
+  if (typeof frames === "number") stats.push(`${compactCount(frames)} frames`);
+  if (hours > 0) stats.push(`${hours}h`);
+
+  if (stats.length === 0 && !isEval) return <div className="datasetCardStats" />;
+
   return (
-    <div className="datasetCardParamRow">
-      <span className="datasetCardParamLabel">{label}</span>
-      <span className="datasetCardParamValue">{value}</span>
+    <div className="datasetCardStats">
+      {isEval && (
+        <span
+          className="datasetCardEvalBadge"
+          title={
+            typeof evalSuccessRate === "number"
+              ? `${Math.round(evalSuccessRate * 100)}% eval success`
+              : "Evaluation set"
+          }
+        >
+          Eval
+          {typeof evalSuccessRate === "number" &&
+            ` ${Math.round(evalSuccessRate * 100)}%`}
+        </span>
+      )}
+      {stats.map((stat, i) => (
+        <span key={stat}>
+          {i > 0 && <span aria-hidden> · </span>}
+          {stat}
+        </span>
+      ))}
     </div>
   );
 }
@@ -154,7 +203,6 @@ export default function ListingCard({
   const tasks = listing.parameters.tasks ?? [];
   const scene = sceneKeyFor(tasks, listing.category);
   const caption = tasks[0] ?? capabilityLabel(listing.category);
-  const { demonstrations } = listing.parameters;
 
   return (
     <div className="datasetCard">
@@ -165,6 +213,8 @@ export default function ListingCard({
 
       <h3 className="datasetCardTitle">{listing.title}</h3>
       <p className="datasetCardSummary">{listing.summary}</p>
+
+      <StatStrip parameters={listing.parameters} />
 
       {/* Seven rows, always, so the block is a fixed height on every card. */}
       <div className="datasetCardParams">
@@ -177,23 +227,25 @@ export default function ListingCard({
           reviews={listing.parameters.recorderReviews}
         />
         <ChipRow label="Tasks" values={tasks} />
-        <ChipRow label="Modality" values={listing.parameters.sensorModalities} />
-        <ValueRow
-          label="Demos"
-          value={
-            typeof demonstrations === "number"
-              ? `${demonstrations.toLocaleString("en-US")} episodes`
-              : "Not specified"
-          }
+        <ChipRow label="Scenes" values={listing.parameters.scenes} />
+        <ChipRow label="Objects" values={listing.parameters.objects} />
+        <ChipRow
+          label="Signals"
+          values={listing.parameters.signals.map(signalLabel)}
         />
-        <ValueRow label="Hours" value={`${listing.parameters.hours}h`} />
-        <ChipRow label="Environment" values={listing.parameters.environmentTags} />
+        <ChipRow
+          label="Embodiment"
+          values={listing.parameters.embodiments.map(humanize)}
+        />
       </div>
 
       <div className="datasetCardFooter">
         <span className="datasetCardPrice datasetCardPriceBlurred" aria-hidden>
           {formatPrice(listing.askingPriceCents)}
         </span>
+        {listing.parameters.license && (
+          <span className="datasetCardLicense">{listing.parameters.license}</span>
+        )}
         <Link
           href={`/signup?ask=${encodeURIComponent(listing.title)}`}
           className="datasetCardAsk"

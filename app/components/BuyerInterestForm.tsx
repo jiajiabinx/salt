@@ -3,7 +3,6 @@
 import { useActionState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { submitBuyerInterest, type BuyerInterestFormState } from "../actions/buyer";
-import { BUYER_TYPES } from "../../lib/auth/kyb";
 import { MIN_PASSWORD_LENGTH } from "../../lib/auth/password-rules";
 
 const initialState: BuyerInterestFormState = { status: "idle" };
@@ -70,51 +69,6 @@ export default function BuyerInterestForm() {
 
       <label className="formField">
         <span className="formLabel">
-          Company name <span className="formReq">*</span>
-        </span>
-        <input
-          name="companyName"
-          type="text"
-          autoComplete="organization"
-          required
-          className="formInput"
-          aria-invalid={Boolean(fieldErr.companyName) || undefined}
-        />
-        {fieldErr.companyName && (
-          <span className="formFieldErr" role="alert">
-            {fieldErr.companyName}
-          </span>
-        )}
-      </label>
-
-      <label className="formField">
-        <span className="formLabel">
-          Buyer type <span className="formReq">*</span>
-        </span>
-        <select
-          name="buyerType"
-          defaultValue=""
-          className="formInput formSelect"
-          aria-invalid={Boolean(fieldErr.buyerType) || undefined}
-        >
-          <option value="" disabled>
-            Select one
-          </option>
-          {BUYER_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-        {fieldErr.buyerType && (
-          <span className="formFieldErr" role="alert">
-            {fieldErr.buyerType}
-          </span>
-        )}
-      </label>
-
-      <label className="formField">
-        <span className="formLabel">
           Password <span className="formReq">*</span>
         </span>
         <input
@@ -166,9 +120,7 @@ export default function BuyerInterestForm() {
       </label>
 
       <p className="formHint formFieldWide">
-        For labs and enterprise data teams only — individual buyers aren&apos;t
-        supported at this time. Your password is set now; sign-in opens once the
-        request is approved.
+        Individual buyers aren&apos;t supported at this time.
       </p>
 
       <div className="formFooter">

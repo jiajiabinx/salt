@@ -326,12 +326,27 @@ const TASK_MATCHERS: [RegExp, SceneKey][] = [
   [/pick|stack|pallet|stock|shelf|planogram|fetch|grasp|sort|load|place|bin/, "grip"],
 ];
 
-/** Category fallback for tasks nothing above recognises. */
+/**
+ * Capture-domain fallback for tasks nothing above recognises. Keyed on the
+ * six Mecka modules in `lib/taxonomy`; the retired capability slugs stay
+ * listed because listings written under them are still in the table.
+ */
 const CATEGORY_SCENES: Record<string, SceneKey> = {
+  telemetry: "scan",
+  locomotion: "drive",
+  kinematics: "turn",
+  degrees_of_freedom: "turn",
+  motion_capture: "handoff",
+  contact_data: "grip",
+
+  /* Pre-Mecka slugs. */
   manipulation: "grip",
   navigation: "drive",
   mobile_manipulation: "handoff",
   inspection: "scan",
+  warehouse_picking: "grip",
+  construction_telemetry: "dig",
+  outdoor_navigation: "drive",
 };
 
 export function sceneKeyFor(tasks: string[], category: string): SceneKey {

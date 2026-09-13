@@ -4,7 +4,7 @@ import { verifyProviderSession } from "../../lib/provider-auth";
 import { verifyBuyerSession } from "../../lib/buyer-auth";
 import { logOutBuyer } from "../actions/buyer-auth";
 import { appUrl, loginUrl } from "../../lib/urls";
-import { CapabilityNav, ModalityFilterBar } from "./MarketplaceFilters";
+import { CapabilityNav, SignalFilterBar } from "./MarketplaceFilters";
 import MarketplaceMenu from "./MarketplaceMenu";
 
 export default async function MarketplaceNav() {
@@ -63,7 +63,7 @@ export default async function MarketplaceNav() {
         </Suspense>
         <div className="marketNavActions">{accountActions}</div>
       </nav>
-      <ModalityFilterBar />
+      <SignalFilterBar />
     </header>
   );
 }

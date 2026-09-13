@@ -1,18 +1,12 @@
 "use server";
 
 import { ensureSchema, sql } from "../../lib/db";
-import { isBuyerType, isWorkEmail } from "../../lib/auth/kyb";
+import { emailDomain, isWorkEmail } from "../../lib/auth/kyb";
 import { hashPassword } from "../../lib/auth/passwords";
 import { passwordProblem } from "../../lib/auth/password-rules";
 import { captureServerEvent } from "../../lib/posthog-server";
 
-type FieldKey =
-  | "name"
-  | "email"
-  | "companyName"
-  | "buyerType"
-  | "password"
-  | "confirmPassword";
+type FieldKey = "name" | "email" | "password" | "confirmPassword";
 
 export type BuyerInterestFormState = {
   status: "idle" | "success" | "error";
@@ -31,8 +25,6 @@ export async function submitBuyerInterest(
 ): Promise<BuyerInterestFormState> {
   const name = (formData.get("name")?.toString() ?? "").trim();
   const email = (formData.get("email")?.toString() ?? "").trim().toLowerCase();
-  const companyName = (formData.get("companyName")?.toString() ?? "").trim();
-  const buyerType = formData.get("buyerType")?.toString() ?? "";
   const useCase = (formData.get("useCase")?.toString() ?? "").trim();
   const password = formData.get("password")?.toString() ?? "";
   const confirmPassword = formData.get("confirmPassword")?.toString() ?? "";
@@ -44,8 +36,6 @@ export async function submitBuyerInterest(
   } else if (!isWorkEmail(email)) {
     fieldErrors.email = "Use your work email — personal/free email domains aren't accepted.";
   }
-  if (!companyName) fieldErrors.companyName = "Company name is required.";
-  if (!isBuyerType(buyerType)) fieldErrors.buyerType = "Choose a buyer type.";
 
   const pwProblem = passwordProblem(password);
   if (pwProblem) fieldErrors.password = pwProblem;
@@ -67,17 +57,22 @@ export async function submitBuyerInterest(
 
   /* The interest record and the account it creates are written together — an
      account with no request behind it has nothing for review to act on, and a
-     request with no account can't be turned into a login. */
+     request with no account can't be turned into a login.
+
+     Company and buyer type go in unset: the work email domain identifies the
+     company well enough that asking twice is friction, so they get filled in
+     from it rather than typed. Until that detection exists they stay null,
+     which is honest about not knowing rather than storing a guess. */
   try {
     await sql.begin(async (tx) => {
       const [interest] = await tx<{ id: number }[]>`
-        INSERT INTO buyer_interest (name, email, company_name, buyer_type, use_case)
-        VALUES (${name}, ${email}, ${companyName}, ${buyerType}, ${useCase || null})
+        INSERT INTO buyer_interest (name, email, use_case)
+        VALUES (${name}, ${email}, ${useCase || null})
         RETURNING id
       `;
       await tx`
-        INSERT INTO buyers (email, password_hash, name, company_name, buyer_type, interest_id)
-        VALUES (${email}, ${passwordHash}, ${name}, ${companyName}, ${buyerType}, ${interest.id})
+        INSERT INTO buyers (email, password_hash, name, interest_id)
+        VALUES (${email}, ${passwordHash}, ${name}, ${interest.id})
       `;
     });
   } catch (err) {
@@ -92,9 +87,8 @@ export async function submitBuyerInterest(
   }
 
   await captureServerEvent(`buyer:${email}`, "buyer_interest_submitted", {
-    buyer_type: buyerType,
-    company_name: companyName,
-    $set: { email, name, company_name: companyName },
+    email_domain: emailDomain(email),
+    $set: { email, name },
   });
 
   return {

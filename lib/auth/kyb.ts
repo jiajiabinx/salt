@@ -15,10 +15,15 @@ const FREE_EMAIL_DOMAINS = new Set([
   "zoho.com",
 ]);
 
-export function isWorkEmail(email: string): boolean {
+/** The domain half of an address, lowercased — "" when there isn't one. */
+export function emailDomain(email: string): string {
   const at = email.lastIndexOf("@");
-  if (at === -1) return false;
-  const domain = email.slice(at + 1).trim().toLowerCase();
+  if (at === -1) return "";
+  return email.slice(at + 1).trim().toLowerCase();
+}
+
+export function isWorkEmail(email: string): boolean {
+  const domain = emailDomain(email);
   if (!domain) return false;
   return !FREE_EMAIL_DOMAINS.has(domain);
 }
